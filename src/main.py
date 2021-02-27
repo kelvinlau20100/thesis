@@ -14,8 +14,7 @@ def main():
 
 
     """
-    HMM code
-    """
+    HMM testing code
     """
     model = hmm.MultinomialHMM(n_components=3)
     model.startprob_ = startProb
@@ -25,7 +24,7 @@ def main():
     predictedFeatures, predictedStateSeq = model.sample(100)
     print(predictedFeatures)
     print(predictedStateSeq)
-    """
+    
     
 if __name__=="__main__":
     main()
