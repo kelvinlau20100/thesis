@@ -50,36 +50,40 @@ def propose(aPf : particleFilter, anEvidence : np.array, aNParticles=100, aThres
     myLogLikelihood = 0.0
     myWeights = np.zeros(aNParticles)
     myParticles = np.zeros((len(anEvidence), aNParticles), dtype=int)
-
+    particleChoices = [x for x in range(aNParticles)]
 
     myParticles[0,:] = np.random.choice([0, 1, 2], size=aNParticles, p=myStartProb)
 
-    print(myParticles.shape)
     for t in range(1, len(anEvidence)):
-        print("timestep: ", t)
         # Propagate my particles forward one time step
         for i in range(0, aNParticles):
             # Iteration through each individual particle
-            
             # Find the next state
-            myParticles[t, i] = np.random.choice([0, 1, 2], p=myTransMatr[myParticles[t-1, i]])
-            
             # Calculate the weights of the particle
             # need to calculate 3 things for each particle, g(y_n | X_n) , f(X_n | X_n-1), q(X_n | y_n, X_n-1)
-            myLogWeights[i] = anEvidence[t]
-            print("X_n = ", myParticles[t,i], "y_n = ", anEvidence[t])
+            
+            myParticles[t, i] = np.random.choice([0, 1, 2], p=myTransMatr[myParticles[t-1, i]])
             g = myEmissMatr[myParticles[t,i]][anEvidence[t]]
             f = myTransMatr[myParticles[t-1, i]][myParticles[t,i]]
             q = myImportanceDistribution[anEvidence[t]][myParticles[t-1,i]][myParticles[t,i]]
             myWeights[i] = g * f / q
             
+            # Debug outputs
+            # print("X_n = ", myParticles[t,i], "y_n = ", anEvidence[t])
+        
+        # normalise the weights to resample the particle paths
+        myWeights = myWeights / np.sum(myWeights)
+        resampledParticles = np.random.choice(particleChoices, p=myWeights, size=100)
+        
+        for i in range(0, aNParticles):
+            myParticles[:, i] = myParticles[:, resampledParticles[i]]
+    
+    print(myParticles)
+    print(myWeights)
+    # Can draw a trajectory path by sampling from the final set of weights and taking that particle path from
+    # myParticles
             
             
-            
-            
-            
-
-
 ###################################################################################################
 def testFuncs():
     #print("log sum exp : ", logSumExp(np.array([5, 4, 3, 2, 1, 0])))
@@ -99,15 +103,12 @@ def testFuncs():
     importanceDistribution = np.zeros((5, 3, 3))
     for i in range(5):
         for j in range(3):
-            importanceDistribution[i][j] = [0.99, 0.005, 0.005]
-    
-    print(importanceDistribution)
+            importanceDistribution[i][j] = [0.2, 0.6, 0.2]
     
 
     myPf = particleFilter(startProb, transMatr, emissionMatr, importanceDistribution)
-    myEvidence = np.random.randint(low=0, high=5, size=200)
+    myEvidence = np.random.randint(low=0, high=5, size=20)
 
-    # propose(aPf=myPf, anEvidence=myEvidence)
-
+    propose(aPf=myPf, anEvidence=myEvidence, aNParticles=6)
 
 testFuncs()
