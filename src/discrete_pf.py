@@ -73,7 +73,7 @@ def propose(aPf : particleFilter, anEvidence : np.array, aNParticles=100, aThres
         
         # normalise the weights to resample the particle paths
         myWeights = myWeights / np.sum(myWeights)
-        resampledParticles = np.random.choice(particleChoices, p=myWeights, size=100)
+        resampledParticles = np.random.choice(particleChoices, p=myWeights, size=aNParticles)
         
         for i in range(0, aNParticles):
             myParticles[:, i] = myParticles[:, resampledParticles[i]]
